@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Historique IMC</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.4.0"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      background-color: #f8fafc;
+      color: #1e293b;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+      min-height: 100vh;
+    }
+
+    header {
+      width: 100%;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    nav a {
+      margin: 0 10px;
+      text-decoration: none;
+      color: #2563eb;
+      font-weight: 600;
+    }
+
+    nav a:hover {
+      text-decoration: underline;
+    }
+
+    .container {
+      max-width: 1000px;
+      width: 100%;
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+      border: 1px solid #e2e8f0;
+    }
+
+    #chart-wrapper {
+      width: 100%;
+      height: 500px;
+    }
+
+    canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 26px;
+      margin-bottom: 25px;
+    }
+
+    #reco {
+      margin-top: 25px;
+      padding: 20px;
+      background-color: #e0f2fe;
+      border-left: 6px solid #2563eb;
+      border-radius: 10px;
+      display: none;
+      font-size: 15px;
+    }
+
+    #reco ul {
+      padding-left: 20px;
+    }
+
+    #reco strong {
+      color: #0c4a6e;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="index.html">Accueil</a>
+      <a href="calcul.html">Calcul</a>
+      <a href="historique.html">Historique</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <h1>Historique de l'IMC</h1>
+    <div id="chart-wrapper">
+      <canvas id="imcChart"></canvas>
+    </div>
+    <div id="reco"></div>
+  </div>
+
+  <script>
+    const data = JSON.parse(localStorage.getItem("historiqueIMC") || "[]");
+
+    const labels = data.map(item => `${item.date}\n${item.nom}`);
+    const values = data.map(item => parseFloat(item.imc));
+    const ctx = document.getElementById('imcChart').getContext('2d');
+    const recoBox = document.getElementById("reco");
+
+    const getRecommandation = (imc) => {
+      if (imc < 18.5) return `
+        <strong>Insuffisance pondérale</strong> :
+        <ul>
+          <li>Mange plus souvent et augmente les portions (collations saines).</li>
+          <li>Privilégie les aliments riches en nutriments : avocats, noix, œufs, céréales complètes.</li>
+          <li>Fais un bilan médical pour détecter d'éventuels troubles digestifs ou métaboliques.</li>
+          <li>Fais du sport modéré pour stimuler l'appétit et maintenir la masse musculaire.</li>
+        </ul>`;
+      if (imc < 25) return `
+        <strong>Poids idéal</strong> :
+        <ul>
+          <li>Garde une alimentation équilibrée (légumes, protéines, bons lipides).</li>
+          <li>Fais 30 min d'activité physique par jour (marche, vélo, natation).</li>
+          <li>Évite les excès réguliers (alcool, sucre, aliments ultra-transformés).</li>
+          <li>Dors suffisamment (7-8h par nuit).</li>
+        </ul>`;
+      if (imc < 30) return `
+        <strong>Surpoids</strong> :
+        <ul>
+          <li>Réduis les portions, évite le grignotage et bois beaucoup d’eau.</li>
+          <li>Choisis des cuissons saines : vapeur, grillade, sans friture.</li>
+          <li>Fais 45 min d’activité cardio 3-4 fois par semaine.</li>
+          <li>Évite les régimes drastiques, favorise les changements durables.</li>
+        </ul>`;
+      if (imc < 35) return `
+        <strong>Obésité modérée</strong> :
+        <ul>
+          <li>Consulte un nutritionniste pour un suivi personnalisé.</li>
+          <li>Mets en place un plan alimentaire structuré.</li>
+          <li>Évite les boissons sucrées, favorise les légumes à chaque repas.</li>
+          <li>Augmente l’activité physique progressivement.</li>
+        </ul>`;
+      return `
+        <strong>Obésité sévère</strong> :
+        <ul>
+          <li>Consulte rapidement un professionnel de santé.</li>
+          <li>Un suivi médical et/ou psychologique est souvent nécessaire.</li>
+          <li>Évite les régimes sans encadrement, favorise un accompagnement pro.</li>
+          <li>Peut nécessiter une prise en charge clinique ou chirurgie bariatrique.</li>
+        </ul>`;
+    };
+
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: 'IMC',
+          data: values,
+          borderColor: '#2563eb',
+          backgroundColor: 'rgba(37, 99, 235, 0.2)',
+          fill: true,
+          tension: 0.3,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          pointBackgroundColor: '#2563eb'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          tooltip: {
+            enabled: true
+          },
+          annotation: {
+            annotations: {
+              objectif: {
+                type: 'line',
+                yMin: 22,
+                yMax: 22,
+                borderColor: 'green',
+                borderWidth: 2,
+                label: {
+                  enabled: true,
+                  content: 'Objectif IMC (22)',
+                  position: 'start',
+                  backgroundColor: 'rgba(0,128,0,0.1)',
+                  color: 'green'
+                }
+              }
+            }
+          }
+        },
+        onClick: (evt, activeElements) => {
+          if (activeElements.length > 0) {
+            const index = activeElements[0].index;
+            recoBox.innerHTML = getRecommandation(values[index]);
+            recoBox.style.display = 'block';
+          } else {
+            recoBox.style.display = 'none';
+          }
+        },
+        scales: {
+          x: {
+            ticks: {
+              callback: (val, i) => labels[i].replace("\n", " - "),
+              maxRotation: 90,
+              minRotation: 90,
+              autoSkip: false
+            },
+            title: { display: true, text: "Date et Nom" }
+          },
+          y: {
+            title: { display: true, text: "IMC" }
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

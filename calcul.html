@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Calculateur d'IMC</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --bg: #f8fafc;
+      --text: #1e293b;
+      --card: #ffffff;
+      --border: #e2e8f0;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+      min-height: 100vh;
+    }
+
+    header {
+      width: 100%;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .container {
+      background-color: var(--card);
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      max-width: 500px;
+      width: 100%;
+      border: 1px solid var(--border);
+    }
+
+    h1 {
+      font-size: 28px;
+      margin-bottom: 25px;
+      text-align: center;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    input {
+      padding: 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 16px;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      font-weight: 600;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.2s;
+    }
+
+    button:hover {
+      background-color: #1d4ed8;
+      transform: translateY(-1px);
+    }
+
+    .result {
+      margin-top: 25px;
+      padding: 20px;
+      background-color: #eff6ff;
+      border-left: 4px solid var(--primary);
+      border-radius: 10px;
+      display: none;
+      animation: fadeIn 0.5s ease-in-out forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    nav {
+      margin-bottom: 20px;
+    }
+
+    nav a {
+      margin: 0 10px;
+      text-decoration: none;
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    nav a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="index.html">Accueil</a>
+      <a href="calcul.html">Calcul</a>
+      <a href="historique.html">Historique</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <h1>Calculateur d'IMC</h1>
+    <div class="input-group">
+      <input type="text" id="nom" placeholder="Nom complet" />
+      <input type="number" id="poids" placeholder="Poids (kg)" />
+      <input type="number" id="taille" placeholder="Taille (cm)" />
+    </div>
+    <button onclick="calculerIMC()">Calculer</button>
+    <div class="result" id="resultat"></div>
+  </div>
+
+  <script>
+    function calculerIMC() {
+      const nom = document.getElementById('nom').value.trim();
+      const poids = parseFloat(document.getElementById('poids').value);
+      const taille = parseFloat(document.getElementById('taille').value) / 100;
+      const resultat = document.getElementById('resultat');
+
+      if (!nom || isNaN(poids) || isNaN(taille)) {
+        alert("Remplis correctement tous les champs.");
+        return;
+      }
+
+      const imc = poids / (taille * taille);
+      const date = new Date().toLocaleDateString();
+
+      let recommandation = "";
+      if (imc < 18.5) {
+        recommandation = "Insuffisance pondérale : Augmente ton apport calorique.";
+      } else if (imc < 25) {
+        recommandation = "Poids normal : Continue ainsi !";
+      } else if (imc < 30) {
+        recommandation = "Surpoids : Bouge plus, mange mieux.";
+      } else if (imc < 35) {
+        recommandation = "Obésité modérée : Consulte un professionnel.";
+      } else {
+        recommandation = "Obésité sévère : Suivi médical nécessaire.";
+      }
+
+      resultat.style.display = 'none';
+
+      setTimeout(() => {
+        resultat.innerHTML = `<strong>${nom}</strong>, ton IMC est de <strong>${imc.toFixed(1)}</strong><br><br>${recommandation}`;
+        resultat.style.display = 'block';
+      }, 1500);
+
+      const historique = JSON.parse(localStorage.getItem("historiqueIMC") || "[]");
+      historique.push({ nom, imc: imc.toFixed(1), date });
+      localStorage.setItem("historiqueIMC", JSON.stringify(historique));
+    }
+  </script>
+</body>
+</html>
